@@ -1,0 +1,1 @@
+Aqui são armazenados os mapas de classificação em cada aplicação dos modelos

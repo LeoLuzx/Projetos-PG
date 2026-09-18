@@ -1,0 +1,1 @@
+Aqui devem ficar os arquivos das funções úteis ao processamento em arquivos separados

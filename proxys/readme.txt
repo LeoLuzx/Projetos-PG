@@ -1,0 +1,1 @@
+Nesta pasta ficam os arquivos proxys responsáveis por chamar os demais para que não fiquem poluindo a raiz do projeto.

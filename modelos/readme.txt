@@ -1,0 +1,1 @@
+Nesta pasta devem ficar as funções relativas aos modelos em arquivos separados

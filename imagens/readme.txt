@@ -1,0 +1,1 @@
+Aqui são armazenadas as imagens em arquivos .Rdata com nomes curtos sugestivos

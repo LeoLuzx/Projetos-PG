@@ -1,0 +1,1 @@
+Aqui são armazenados os resultados dos processamentos, geralmente, no formato de datasets .csv
