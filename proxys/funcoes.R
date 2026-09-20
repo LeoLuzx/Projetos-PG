@@ -17,3 +17,5 @@
 source("utils/instalar.R")
 
 # Funções da pasta 'modelos'
+source("modelos/grad_loglik_g0i.R")
+source("modelos/loglik_g0i.R")
