@@ -4,6 +4,15 @@
 #Define o gradiente da log-verossimilhança
 grad_loglik_g0i = function(Xobs, alfa, gama, L){
   
+  # OBS: A única condição de entrada não sanitizável nesta estrutura ocorre quando há algum valor do
+  # tipo lógico dentro do vetor Xobs, pois nesse caso, esse valor lógico será coagido para 'double' 
+  # fazendo TRUE virar 1 e FALSE virar 0. No caso de false, ao ser convertido para o valor 0, a 
+  # restrição de valores não nulos evitará a sua aceitação, mas, no caso de TRUE sendo convertido 
+  # para 1, não há verificação por causa da coerção. Portanto, nesse único caso, o usuário é quem 
+  # deve zelar para que não haja valores lógicos intrusos no vetor de amostras. Dado o uso desta 
+  # função, o evento de existirem valores do tipo lógico dentro do vetor de amostras é improvável, 
+  # no entanto, devemos tomar nota.
+  
   # ----- VALIDAÇÃO DA AMOSTRA -----
   
   # NULL deve ser verificado antes da verificação do comprimento, pois NULL possui comprimento zero 
@@ -12,9 +21,9 @@ grad_loglik_g0i = function(Xobs, alfa, gama, L){
   if (is.null(Xobs))
     stop("Xobs no gradiente da log-verossimilhança da g0i não pode ser NULL.")
   
-  # Ser numérico (verificção mais à frente) já garante que não é vazio, pois is.numeric(c()) retorna
-  # FALSE. No entanto, essa parte é mantida por questões de clareza semântica e comunicação do tipo 
-  # do problema caso ocorra.
+  # Ser numérico (mais à frente) já garante que não é vazio, pois is.numeric(c()) retorna FALSE. No 
+  # entanto, essa parte é mantida por questões de clareza semântica e comunicação do tipo do 
+  # problema caso ocorra.
   if (length(Xobs) == 0)
     stop("Xobs no gradiente da log-verossimilhança da g0i deve ser um vetor não vazio.")
   
@@ -38,10 +47,8 @@ grad_loglik_g0i = function(Xobs, alfa, gama, L){
   if (any(is.na(Xobs)))
     stop("Xobs no gradiente da log-verossimilhança da g0i não pode conter NA's.")
   
-  # Se os dados não forem numéricos, o R vai coagir o restante num tipo de dado diferente que está 
-  # na parte mais acima na hierarquia dos dados e isso vai acusar que o vetor não é numérico já que
-  # 'complex' e 'character' são tipos de dados de hierarquia mais alta. Os ipos de dados 'double' e 
-  # 'integer' são numéricos e podem passar por esse nível pois serão coagidos a 'double'. 
+  # Deve ser um vetor numérico. Em R, is.numeric() retorna TRUE para objetos dos tipos integer e 
+  # double, que são os tipos numéricos aceitos nesta função.
   if (!is.numeric(Xobs))
     stop("Xobs no gradiente da log-verossimilhança da g0i deve ter apenas dados numéricos.")
   
@@ -134,7 +141,7 @@ grad_loglik_g0i = function(Xobs, alfa, gama, L){
   
   # Não pode possuir dimensões, pois deve ser um valor escalar e não uma matriz, array etc.
   if (!is.null(dim(L)))
-    stop("O parâmetro L na log-verossimilhança da g0i deve ser um valor escalar.")
+    stop("O parâmetro L no gradiente da log-verossimilhança da g0i deve ser um valor escalar.")
   
   # Deve ser um valor único, não podendo aceitar um vetor (nem mesmo vazio)
   if (length(L) != 1)
@@ -169,11 +176,24 @@ grad_loglik_g0i = function(Xobs, alfa, gama, L){
   # Tamanho da amostra
   n = length(Xobs)
   
-  # Derivada da log-verossimilhança em relação a alfa
-  dalfa <- - n * log(gama)  - n * digamma(L - alfa) + n * digamma(-alfa) + sum(log(gama + L * Xobs))
-    
-  #Derivada da log-verossimilhança em relação a gama
-  dgama <- - n * alfa / gama + (alfa - L) * sum(1 / (gama + L * Xobs) )
+  # Esta quantidade comum às duas componentes do gradiente deve ser verificada porque pode ser
+  # explosiva quando valores muito grandes surgem, por exemplo, quando seus elementos são 
+  # estimados em ciclos bootstrap gerando overflow ou underflow. Os avisos aqui permitem comunicar 
+  # se por acaso isso acontecer.
+  aux <- gama + L * Xobs
+  
+  if (any(!is.finite(aux)))
+    stop("O cálculo de (gama + L * Xobs) no gradiante da log-verossimilhança da g0i produziu valores não finitos.")
+  
+  # Recíproco utilizado na derivada em relação a gama
+  inv_aux <- 1 / aux
+  
+  if (any(!is.finite(inv_aux)))
+    stop("O cálculo de (1 / (gama + L * Xobs)) no gradiente da log-verossimilhança da g0i produziu valores não finitos.")
+  
+  dalfa <- -n * log(gama) - n * digamma(L - alfa) + n * digamma(-alfa) + sum(log(aux))
+  
+  dgama <- -n * alfa / gama + (alfa - L) * sum(inv_aux)
     
   # ----- RETORNO COMO UM VETOR -----
   
