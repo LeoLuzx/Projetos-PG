@@ -1,0 +1,1 @@
+Nesta pasta devem ficar as funções experimentais antes de substituírem as antigas enquanto seus testes não forem finalizados.

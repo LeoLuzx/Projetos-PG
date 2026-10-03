@@ -1,117 +1,74 @@
+# LOG-VEROSSIMILHANÇA DA DISTRIBUIÇÃO g0i
 
-# FUNÇÃO PARA CALCULAR A LOG-VEROSSIMILHANÇA DA DISTRIBUIÇÃO g0i
-
-# Sem valores padrão para os parâmetros para que o usuários seja obrigado e não esquecer
-
-log_likelihood_g0i <- function(Xobs, alfa, gama, L){
+# Define a log-verossimilhança da distribuição g0i
+loglik_g0i <- function(Xobs, alfa, gama, L){
+  
+  # OBS: A única condição de entrada não verificável nesta estrutura ocorre quando há algum valor 
+  # do tipo lógico dentro do vetor 'Xobs', pois nesse caso, esse valor lógico será coagido para 
+  # 'double' fazendo 'TRUE' virar 1 e 'FALSE' virar 0. No caso de 'FALSE', ao ser convertido para o 
+  # valor 0, a restrição de valores não nulos evitará a sua aceitação, mas, no caso de 'TRUE' sendo 
+  # convertido para 1, esse dado errado passará pela verificação. Portanto, nesse único caso, é o 
+  # usuário quem deve zelar para que não haja valores lógicos intrusos no vetor de amostras. Dado o 
+  # uso desta função, o evento de existirem valores do tipo lógico dentro do vetor de amostras é 
+  # improvável, no entanto, devemos tomar nota.
   
   # ----- VALIDAÇÃO DA AMOSTRA -----
   
-  # Ser numérico já garante que não é vazio, pois is.numeric(c()) retorna FALSE. No entanto, essa
-  # parte é mantida por questões de clareza semântica e comunicação do problema caso ocorra.
-  if (length(Xobs) == 0)
-    stop("Xobs na log-verossimilhança da g0i deve ser um vetor não vazio.")
-  
-  # Ser numérico não garante que seja um vetor, pois matrizes e outras estruturas de valores reais 
-  # também podem ser do tipo numérico. Por isso, verificamos aqui a dimensão do objeto para garantir
-  # que ele seja um vetor que deve ter dimensão 'NULL'.
-  if (!is.null(dim(Xobs)))
-    stop("Xobs na log-verossimilhança da g0i deve ser um vetor.")
-  
-  # Se os dados não forem numéricos, o R vai coagir o restante num tipo de dado diferente que está 
-  # na parte mais acima na hierarquia dos dados e isso vai acusar que o vetor não é numérico já que
-  # 'complex' e 'character' são tipos de dados de hierarquia mais alta. Os ipos de dados 'double' e 
-  # 'integer' são numéricos e podem passar por esse nível pois serão coagidos a 'double'. 
-  if (!is.numeric(Xobs))
-    stop("Xobs na log-verossimilhança da g0i deve ter apenas dados numéricos.")
-  
-  # Se os dados tiverem valores NA, NaN ou Inf
-  if (any(!is.finite(Xobs)))
-    stop("Xobs na log-verossimilhança da g0i não pode conter NA's, NaN's ou Inf's.")
-  
-  # Se os dados não forem todos positivos
-  if (any(Xobs < 0))
-    stop("Xobs na log-verossimilhança da g0i não deve conter valores negativos.")
-  
-  # Se os dados não forem todos positivos
-  if (any(Xobs == 0))
-    stop("Xobs na log-verossimilhança da g0i não deve conter zeros.")
+  validar_vetor(Xobs)
   
   # ----- VALIDAÇÃO DO PARÂMETRO ALFA -----
   
-  # Deve ser um valor numérico (double ou integer)
-  if (!is.numeric(alfa))
-    stop("O parâmetro alfa na log-verossimilhança da g0i deve ser um valor numérico.")
-  
-  # Deve ser um valor único, não podendo aceitar um vetor (nem mesmo vazio)
-  if (length(alfa) != 1)
-    stop("O parâmetro alfa na log-verossimilhança da g0i deve ser um valor único.")
-  
-  # Deve ser um número finito. Não pode conter NA's, NaN's nem Inf's
-  if (!is.finite(alfa))
-    stop("O parâmetro alfa na log-verossimilhança da g0i não pode ser NA, NaN ou Inf.")
+  validar_valor(alfa)
   
   # Deve ser menor do que -1 (pela teoria)
   if (alfa >= -1)
-    stop("O parâmetros alfa na log-verossimilhança da g0i deve ser menor do que -1.")
+    stop("O parâmetro alfa na log-verossimilhança da distribuição g0i deve ser menor do que -1.")
   
   # ----- VALIDAÇÃO DO PARÂMETRO GAMA -----
   
-  # Deve ser um valor numérico (double ou integer)
-  if (!is.numeric(gama))
-    stop("O parâmetro gama na log-verossimilhança da g0i deve ser um valor numérico.")
+  validar_valor(gama)
   
-  # Deve ser um valor único, não podendo aceitar um vetor (nem mesmo vazio)
-  if (length(gama) != 1)
-    stop("O parâmetro gama na log-verossimilhança da g0i deve ser um valor único.")
-  
-  # Deve ser um número finito. Não pode conter NA's, NaN's nem Inf's
-  if (!is.finite(gama))
-    stop("O parâmetro gama na log-verossimilhança da g0i não pode ser NA, NaN ou Inf.")
-  
-  # Deve ser maior do que 0 (pela teoria)
+  # Deve ser maior do que zero (pela teoria)
   if (gama <= 0)
-    stop("O parâmetros gama na log-verossimilhança da g0i deve ser maior do que 0.")
+    stop("O parâmetro gama na log-verossimilhança da distribuição g0i deve ser maior do que zero.")
   
   # ----- VALIDAÇÃO DO PARÂMETRO L -----
   
-  # Deve ser um valor numérico (double ou integer)
-  if (!is.numeric(L))
-    stop("O parâmetro L na log-verossimilhança da g0i deve ser um valor numérico.")
-  
-  # Deve ser um valor único, não podendo aceitar um vetor (nem mesmo vazio)
-  if (length(L) != 1)
-    stop("O parâmetro L na log-verossimilhança da g0i deve ser um valor único.")
-  
-  # Deve ser um número finito. Não pode conter NA's, NaN's nem Inf's
-  if (!is.finite(L))
-    stop("O parãmetro L na log-verossimilhança da g0i não pode ser NA, NaN ou Inf.")
+  validar_valor(L)
   
   # Verificando se L é inteiro (quer passado como 'double', quer passado como 'integer')
   if (L != floor(L))
-    stop("O parãmetro L na log-verossimilhança da g0i deve ser um número inteiro.")
+    stop("O parâmetro L na log-verossimilhança da distribuição g0i deve ser um número inteiro.")
   
   # Deve ser maior do que 0 (pela teoria)
   if (L <= 0)
-    stop("O parâmetro L na log-verossimilhança da g0i deve ser maior do que 0.")
+    stop("O parâmetro L na log-verossimilhança da distribuição g0i deve ser maior do que zero.")
   
-  # ----- CONSTRUÇÃO DA LOG-VERO DA g0i -----
+  # ----- CONSTRUÇÃO DA LOG-VEROSSIMILHANÇA DA DISTRIBUIÇÃO g0i -----
   
   # Tamanho da amostra
-  n <- length(Xobs)
+  n = length(Xobs)
   
-  #Parcela constante da log-verossimilhança
+  # Esta quantidade, que é comum às duas componentes do gradiente, deve ser verificada porque pode 
+  # ter comportamento explosivo quando valores muito grandes surgem, por exemplo, quando os seus 
+  # elementos são  estimados em ciclos bootstrap gerando overflow ou underflow. Os avisos aqui 
+  # permitem comunicar se por acaso isso acontecer.
+  aux <- gama + L * Xobs
+  
+  if (any(!is.finite(aux)))
+    stop("O cálculo de (gama + L * Xobs) na log-verossimilhança da distribuição g0i produziu valores infinitos.")
+  
+  # Parcela constante da log-verossimilhança
   const <- n * L * log(L) + n * log(gamma(L - alfa)) - alfa * n * log(gama) - n * log(gamma(-alfa)) - n * log(gamma(L))
   
-  #Parcela variável da log-verossimilhança
-  var <- (L - 1) * sum(log(Xobs)) - (L - alfa) * sum(log(gama + L * Xobs))
+  # Parcela variável da log-verossimilhança
+  var <- (L - 1) * sum(log(Xobs)) - (L - alfa) * sum(log(aux))
   
   # ----- RETORNO COMO VALOR ÚNICO -----
   
-  #Resultado (somas das duas parcelas)
+  # Resultado (somas das duas parcelas)
   res <- (const + var)
   
-  #Retorno do resultado
+  # Retorno do resultado
   return(res)
-  
 }

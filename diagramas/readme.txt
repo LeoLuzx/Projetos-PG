@@ -1,1 +1,1 @@
-Aqui estão os diagramas do planejamento do projeto para melhor construção dos códigos
+Aqui estão os diagramas do planejamento do projeto para melhor construção dos códigos. O software utilizado é o Draw.io

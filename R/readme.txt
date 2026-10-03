@@ -1,0 +1,1 @@
+Nesta pasta devem ficar todos os arquivos main.R de cada tarefa para que não fiquem espalhados na raiz do projeto.
